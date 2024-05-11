@@ -136,6 +136,7 @@
     <ClCompile Include="..\..\include\GL\gl3w.c" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ModelManager.cpp" />
+    <ClCompile Include="obj_loader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="phong.frag" />
