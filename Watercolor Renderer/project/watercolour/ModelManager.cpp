@@ -11,9 +11,8 @@ GLuint ModelManager::loadTexture(const std::string& path) {
 
 	int width, height, nrComponents;
 
-	// 添加前缀到文件路径
 	std::string fullPath = "objects/";
-	fullPath += path;  // 这里假设path是一个相对路径
+	fullPath += path;
 
 	unsigned char* data = stbi_load(fullPath.c_str(), &width, &height, &nrComponents, 0);
 	if (data) {
@@ -44,8 +43,10 @@ GLuint ModelManager::loadTexture(const std::string& path) {
 	return textureID;
 }
 
-void ModelManager::setupMeshEntry(const objl::Mesh& mesh) {
+void ModelManager::setupMeshEntry(const objl::Mesh& mesh, const glm::vec3& position) {
 	MeshEntry entry;
+	entry.position = position;
+
 	entry.numIndices = mesh.Indices.size();
 
 	glGenVertexArrays(1, &entry.VAO);
@@ -111,19 +112,19 @@ void ModelManager::setupMeshEntry(const objl::Mesh& mesh) {
 	meshEntries.push_back(entry);
 }
 
-bool ModelManager::loadModel(const std::string& filePath) {
+bool ModelManager::loadModel(const std::string& filePath, const glm::vec3& pos) {
     objl::Loader Loader;
     if (!Loader.LoadFile(filePath)) {
         std::cerr << "Failed to load file: " << filePath << std::endl;
         return false;
     }
     for (auto& mesh : Loader.LoadedMeshes) {
-        setupMeshEntry(mesh);
+        setupMeshEntry(mesh, pos);
     }
     return true;
 }
 
-void ModelManager::drawModel(unsigned int shaderProgram) {
+void ModelManager::drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition) {
 	// Activate shader program
 	glUseProgram(shaderProgram);
 
@@ -139,8 +140,8 @@ void ModelManager::drawModel(unsigned int shaderProgram) {
 		glUniform1f(glGetUniformLocation(shaderProgram, "material.transparency"), entry.d);
 
 		// Set lighting properties
-		/*glUniform3fv(glGetUniformLocation(shaderProgram, "lightPos"), 1, glm::value_ptr(lightPos));
-		glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, glm::value_ptr(Camera.Position));*/
+		glUniform3fv(glGetUniformLocation(shaderProgram, "lightPos"), 1, glm::value_ptr(lightPos));
+		glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, glm::value_ptr(cameraPosition));
 		glUniform3fv(glGetUniformLocation(shaderProgram, "lightColor"), 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 1.0f))); // Assuming white light
 
 
@@ -199,7 +200,7 @@ void ModelManager::drawModel(unsigned int shaderProgram) {
 		}
 		// Model matrix setup
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // Assuming all meshes are centered
+		model = glm::translate(model, entry.position); // Assuming all meshes are centered
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
 		// Draw the mesh

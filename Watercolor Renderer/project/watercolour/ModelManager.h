@@ -30,24 +30,26 @@ struct MeshEntry {
 	float d;       // Transparency
 	int illum;     // Illumination model
 
-	//MeshEntry() : VAO(0), VBO(0), textureDiffuseID(0), textureSpecularID(0), textureNormalID(0), numIndices(0), Ns(0.0f), Ni(0.0f), d(1.f), illum(0) {}
+	glm::vec3 position; // Ìí¼ÓÎ»ÖÃ×Ö¶Î
+	
 	MeshEntry() : VAO(0), VBO(0), textureAmbientID(0), textureDiffuseID(0),
 		textureSpecularID(0), textureSpecularHeighlightID(0), textureAlphaID(0),
 		BumpMapID(0), textureNormalID(0), numIndices(0), Ns(0.0f), Ni(0.0f), d(1.f), illum(0) {
 		Ka = glm::vec3(0.0f);
 		Kd = glm::vec3(0.0f);
 		Ks = glm::vec3(0.0f);
+		position = glm::vec3(0.0f);
 	}
 };
 
 class ModelManager {
 private:
     GLuint loadTexture(const std::string& path);
-    void setupMeshEntry(const objl::Mesh& mesh);
+    void setupMeshEntry(const objl::Mesh& mesh, const glm::vec3& position);
 
 public:
 	std::vector<MeshEntry> meshEntries;
     ModelManager();
-    bool loadModel(const std::string& filePath);
-    void drawModel(GLuint shaderProgram);
+    bool loadModel(const std::string& filePath, const glm::vec3& initialPosition);
+    void drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition);
 };

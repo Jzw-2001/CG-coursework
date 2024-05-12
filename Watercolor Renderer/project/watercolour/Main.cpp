@@ -112,7 +112,8 @@ int main(int argc, char** argv)
 	MoveAndOrientCamera(Camera, glm::vec3(0, 0, 0), cam_dist, 0.f, 0.f);
 
 	ModelManager modelManager;
-	modelManager.loadModel("objects/cat_quad_to_tri.obj");
+	modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(10, 10, 10));
+	modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 0, 0));
 
 	// create buffers respecting to the mesh entries
 
@@ -137,7 +138,7 @@ int main(int argc, char** argv)
 		glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-		modelManager.drawModel(program);
+		modelManager.drawModel(program, lightPos, Camera.Position);
 
 		glfwSwapBuffers(window);
 
