@@ -142,8 +142,11 @@
   <ItemGroup>
     <None Include="phong.frag" />
     <None Include="phong.vert" />
+    <None Include="shadow.frag" />
+    <None Include="shadow.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bitmap.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="ModelManager.h" />
     <ClInclude Include="obj_loader.h" />

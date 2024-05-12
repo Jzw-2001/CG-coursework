@@ -223,3 +223,20 @@ void ModelManager::drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3
 	// Unbind VAO after drawing
 	glBindVertexArray(0);
 }
+
+void ModelManager::drawShadowMap(GLuint shaderProgram, glm::mat4 lightSpaceMatrix) {
+	glUseProgram(shaderProgram);
+	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+
+	for (auto& entry : meshEntries) {
+		glBindVertexArray(entry.VAO);
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, entry.position);
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+		glDrawArrays(GL_TRIANGLES, 0, entry.numIndices);
+	}
+
+	//glBindVertexArray(0);
+}

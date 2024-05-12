@@ -35,6 +35,12 @@
     <None Include="phong.vert">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="shadow.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="shadow.vert">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
@@ -47,6 +53,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="ModelManager.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bitmap.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -16,6 +16,7 @@
 #include "shader.h"
 #include "ModelManager.h"
 #include <direct.h>
+#include "bitmap.h"
 
 
 //#define STB_IMAGE_IMPLEMENTATION
@@ -37,8 +38,8 @@ GLuint VAOs[NUM_VAOS];
 
 #define WIDTH 1024
 #define HEIGHT 768
-#define SHADOW_WIDTH 1024
-#define SHADOW_HEIGHT 1024
+#define SHADOW_WIDTH 2048
+#define SHADOW_HEIGHT 2048
 
 
 void processKeyboard(GLFWwindow* window)
@@ -100,15 +101,18 @@ void SizeCallback(GLFWwindow* window, int w, int h)
 
 
 
-GLuint depthMapFBO;
-GLuint depthMap;
-
+//GLuint depthMapFBO;
+//GLuint depthMap;
+struct ShadowMap {
+	GLuint depthMapFBO;
+	GLuint Texture;
+} shadowMap;
 
 
 void initShadowMap() {
-	glGenFramebuffers(1, &depthMapFBO);
-	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glGenFramebuffers(1, &shadowMap.depthMapFBO);
+	glGenTextures(1, &shadowMap.Texture);
+	glBindTexture(GL_TEXTURE_2D, shadowMap.Texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -117,8 +121,8 @@ void initShadowMap() {
 	float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap.Texture, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -126,19 +130,21 @@ void initShadowMap() {
 
 
 
-void RenderSceneToDepthMap() {
-	// Render to depth map
-	glm::mat4 lightProjection, lightView;
-	glm::mat4 lightSpaceMatrix;
-	float near_plane = 1.0f, far_plane = 7.5f;
-	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-	lightView = glm::lookAt(lightPos, lightPos + lightDirection, glm::vec3(0.0, 1.0, 0.0));
-	lightSpaceMatrix = lightProjection * lightView;
-	// Switch to frame buffer and draw scene as we normally would to color texture
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	// Configure shader and matrices
-}
+//void RenderSceneToDepthMap() {
+//	// Render to depth map
+//	glm::mat4 lightProjection, lightView;
+//	glm::mat4 lightSpaceMatrix;
+//	float near_plane = 1.0f, far_plane = 7.5f;
+//	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+//	lightView = glm::lookAt(lightPos, lightPos + lightDirection, glm::vec3(0.0, 1.0, 0.0));
+//	lightSpaceMatrix = lightProjection * lightView;
+//	// Switch to frame buffer and draw scene as we normally would to color texture
+//	glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.depthMapFBO);
+//	glClear(GL_DEPTH_BUFFER_BIT);
+//	// Configure shader and matrices
+//	GLuint program = CompileShader("shadow.vert", "shadow.frag");
+//	glUseProgram(program);
+//}
 
 
 
@@ -157,6 +163,47 @@ void LoadModels(ModelManager &modelManager) {
 	modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 50, 0));
 }
 
+
+void saveShadowMapToBitmap(unsigned int Texture, int w, int h) {
+	float* pixelBuffer = (float*)malloc(sizeof(float) * w * h);// [] ;
+	glBindTexture(GL_TEXTURE_2D, Texture);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixelBuffer);
+
+	char* charBuffer = (char*)malloc(sizeof(unsigned char) * w * h * 3);
+
+	for (int y = 0; y < h; y++) {
+		for (int x = 0; x < w; x++) {
+			charBuffer[(y * w * 3) + (x * 3) + 0] = pixelBuffer[(y * w) + x] * 255;
+			charBuffer[(y * w * 3) + (x * 3) + 1] = pixelBuffer[(y * w) + x] * 255;
+			charBuffer[(y * w * 3) + (x * 3) + 2] = pixelBuffer[(y * w) + x] * 255;
+		}
+
+	}
+
+	BITMAPINFOHEADER infoHdr;
+	infoHdr.biSize = 40;
+	infoHdr.biWidth = w;
+	infoHdr.biHeight = h;
+	infoHdr.biPlanes = 1;
+	infoHdr.biBitCount = 24;
+	infoHdr.biCompression = 0;
+	infoHdr.biSizeImage = sizeof(unsigned char) * w * h * 3;
+	infoHdr.biXPelsPerMeter = 0;
+	infoHdr.biYPelsPerMeter = 0;
+	infoHdr.biClrUsed = 0;
+	infoHdr.biClrImportant = 0;
+
+	BITMAPFILEHEADER fileHdr;
+	fileHdr.bfType = 19778;
+	fileHdr.bfSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + (sizeof(unsigned char) * w * h * 3);
+	fileHdr.bfReserved1 = 0;
+	fileHdr.bfReserved2 = 0;
+	fileHdr.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+	savebitmap("shadowMap.bmp", (unsigned char*)charBuffer, &infoHdr, &fileHdr);
+
+	free(charBuffer);
+	free(pixelBuffer);
+}
 
 
 int main(int argc, char** argv)
@@ -188,24 +235,33 @@ int main(int argc, char** argv)
 	LoadModels(modelManager);
 
 	GLuint program = CompileShader("phong.vert", "phong.frag");
+	GLuint programShadow = CompileShader("shadow.vert", "shadow.frag");
 
-
+	int frame = 0;
 	while (!glfwWindowShouldClose(window))
 	{
-		
+		// Generate depth map
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		// Render to depth map
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+
+		// Configure shader and matrices
 		glm::mat4 lightProjection, lightView;
 		glm::mat4 lightSpaceMatrix;
-		float near_plane = 1.0f, far_plane = 999999.f;
-		lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		float near_plane = 1.0f, far_plane = 700.5f;
+		lightProjection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, near_plane, far_plane);
 		lightView = glm::lookAt(lightPos, lightPos + lightDirection, glm::vec3(0.0, 1.0, 0.0));
 		lightSpaceMatrix = lightProjection * lightView;
-		// Switch to frame buffer and draw scene as we normally would to color texture
-		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		// Configure shader and matrices
-		RenderSceneToDepthMap();
+
+		// Render scene as normal with shadow mapping (using depth map)
+		modelManager.drawShadowMap(programShadow, lightSpaceMatrix);
+
+		frame++;
+		if (frame % 1000 == 0)
+			saveShadowMapToBitmap(shadowMap.Texture, SHADOW_WIDTH, SHADOW_HEIGHT);
+
+		glBindVertexArray(0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
@@ -218,7 +274,6 @@ int main(int argc, char** argv)
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-
 		glUseProgram(program);
 
 
@@ -228,17 +283,14 @@ int main(int argc, char** argv)
 		glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 		glUniformMatrix4fv(glGetUniformLocation(program, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glBindTexture(GL_TEXTURE_2D, shadowMap.Texture);
 		glUniform1i(glGetUniformLocation(program, "shadowMap"), 0);
 
-		//modelManager.drawModel(program, lightPos, Camera.Position);
 		for (auto& entry : modelManager.meshEntries) {
-			//cout << entry.VAO << " " << entry.VBO << endl;
 			glBindVertexArray(entry.VAO);
 			glBindBuffer(GL_ARRAY_BUFFER, entry.VBO);
-			//glDrawArrays(GL_TRIANGLES, 0, entry.numIndices);
 		}
-		modelManager.drawModel(program, lightPos, Camera.Position, depthMap, lightSpaceMatrix);
+		modelManager.drawModel(program, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
