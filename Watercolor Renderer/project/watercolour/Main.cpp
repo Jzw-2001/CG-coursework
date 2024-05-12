@@ -37,6 +37,8 @@ GLuint VAOs[NUM_VAOS];
 
 #define WIDTH 1024
 #define HEIGHT 768
+#define SHADOW_WIDTH 1024
+#define SHADOW_HEIGHT 1024
 
 
 void processKeyboard(GLFWwindow* window)
@@ -89,17 +91,22 @@ void processKeyboard(GLFWwindow* window)
 	}
 }
 
+
+
 void SizeCallback(GLFWwindow* window, int w, int h)
 {
 	glViewport(0, 0, w, h);
 }
 
+
+
 GLuint depthMapFBO;
 GLuint depthMap;
 
+
+
 void initShadowMap() {
 	glGenFramebuffers(1, &depthMapFBO);
-	const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 	glGenTextures(1, &depthMap);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -117,6 +124,8 @@ void initShadowMap() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+
+
 void RenderSceneToDepthMap() {
 	// Render to depth map
 	glm::mat4 lightProjection, lightView;
@@ -131,12 +140,24 @@ void RenderSceneToDepthMap() {
 	// Configure shader and matrices
 }
 
+
+
 string GetCurrentWorkingDir() {
 	char buff[FILENAME_MAX]; //create string buffer to hold path
 	_getcwd(buff, FILENAME_MAX);
 	string current_working_dir(buff);
 	return current_working_dir;
 }
+
+
+
+void LoadModels(ModelManager &modelManager) {
+	std::cout << "workingdir: " << GetCurrentWorkingDir().c_str() << std::endl;
+	modelManager.loadModel("objects/plane.obj", glm::vec3(0, 0, 0));
+	modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 50, 0));
+}
+
+
 
 int main(int argc, char** argv)
 {
@@ -151,32 +172,27 @@ int main(int argc, char** argv)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
 
-	GLuint program = CompileShader("phong.vert", "phong.frag");
+	
 
 	initShadowMap();
+
+
 
 	InitCamera(Camera);
 	cam_dist = 5.f;
 	MoveAndOrientCamera(Camera, glm::vec3(0, 0, 0), cam_dist, 0.f, 0.f);
 
+
+
 	ModelManager modelManager;
-	//modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(10, 10, 10));
-	// output current working directory
-	std::cout << "workingdir: " << GetCurrentWorkingDir().c_str() << std::endl;
-	modelManager.loadModel("objects/plane.obj", glm::vec3(0, 0, 0));
-	modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 50, 0));
-	
-	//modelManager.loadModel("objects/plane.obj", glm::vec3(0, 0, 0));
+	LoadModels(modelManager);
 
-	// create buffers respecting to the mesh entries
+	GLuint program = CompileShader("phong.vert", "phong.frag");
 
-	/*for (auto& entry : modelManager.meshEntries) {
-		glBindVertexArray(entry.VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, entry.VBO);
-	}*/
 
 	while (!glfwWindowShouldClose(window))
 	{
+		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// Render to depth map
 		glm::mat4 lightProjection, lightView;
@@ -201,6 +217,7 @@ int main(int argc, char** argv)
 		glClearBufferfv(GL_COLOR, 0, bgd);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 
 		glUseProgram(program);
 
