@@ -51,5 +51,5 @@ public:
 	std::vector<MeshEntry> meshEntries;
     ModelManager();
     bool loadModel(const std::string& filePath, const glm::vec3& initialPosition);
-    void drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition);
+    void drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix);
 };

@@ -114,6 +114,10 @@ void ModelManager::setupMeshEntry(const objl::Mesh& mesh, const glm::vec3& posit
 
 bool ModelManager::loadModel(const std::string& filePath, const glm::vec3& pos) {
     objl::Loader Loader;
+	Loader.LoadedIndices.clear();
+	Loader.LoadedVertices.clear();
+	Loader.LoadedMeshes.clear();
+
     if (!Loader.LoadFile(filePath)) {
         std::cerr << "Failed to load file: " << filePath << std::endl;
         return false;
@@ -124,9 +128,18 @@ bool ModelManager::loadModel(const std::string& filePath, const glm::vec3& pos) 
     return true;
 }
 
-void ModelManager::drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition) {
+void ModelManager::drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix) {
+
+	//cout << "Drawing model" << endl;
+
 	// Activate shader program
 	glUseProgram(shaderProgram);
+
+	// Set the light space matrix and the shadow map
+	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+	glUniform1i(glGetUniformLocation(shaderProgram, "shadowMap"), 0);
 
 	// Iterate through each mesh entry
 	for (auto& entry : meshEntries) {

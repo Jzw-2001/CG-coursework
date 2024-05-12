@@ -18,6 +18,10 @@ uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform vec3 lightColor;
 
+uniform sampler2D shadowMap;
+uniform mat4 lightSpaceMatrix;
+
+
 uniform struct Material {
     vec3 ambient;
     vec3 diffuse;
@@ -25,6 +29,23 @@ uniform struct Material {
     float shininess;
     float transparency;
 } material;
+
+
+float ShadowCalculation(vec4 fragPosLightSpace) {
+    // Transform fragment position to light space
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // Transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadowMap, projCoords.xy).r; 
+    // Get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // Check whether current frag pos is in shadow
+    float shadow = currentDepth > closestDepth + 0.005 ? 1.0 : 0.0;
+    return shadow;
+}
+
+
 
 void main() {
     
@@ -46,8 +67,15 @@ void main() {
     vec3 specular = spec * texture(texture_specular, TexCoords).rgb * material.specular;
     if(!useTexture) specular = spec * material.specular;
 
+
+    // Shadow
+    vec4 fragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
+    float shadow = ShadowCalculation(fragPosLightSpace);
+
     // Combine results
-    vec3 result = ambient + diffuse + specular;
+    // vec3 result = ambient + diffuse + specular;
+    vec3 result = (1.0 - shadow) * (ambient + diffuse + specular);
+
     if(has_alpha) {
         FragColor = vec4(result, texture(texture_alpha, TexCoords).r);
     }
@@ -55,6 +83,4 @@ void main() {
         FragColor = vec4(result, texture(texture_diffuse, TexCoords).a);
 	}
     
-    // test with diffuse only
-    // FragColor = vec4(texture(texture_diffuse, TexCoords).rgb, 1.0f);
 }
