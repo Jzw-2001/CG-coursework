@@ -74,7 +74,7 @@ void main() {
 
     // Combine results
     // vec3 result = ambient + diffuse + specular;
-    vec3 result = (1.0 - shadow) * (ambient + diffuse + specular);
+    vec3 result = (1.0 - shadow) * (diffuse + specular) + ambient;
 
     if(has_alpha) {
         FragColor = vec4(result, texture(texture_alpha, TexCoords).r);
