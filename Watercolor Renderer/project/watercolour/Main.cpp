@@ -159,7 +159,7 @@ string GetCurrentWorkingDir() {
 
 void LoadModels(ModelManager &modelManager) {
 	std::cout << "workingdir: " << GetCurrentWorkingDir().c_str() << std::endl;
-	modelManager.loadModel("objects/plane.obj", glm::vec3(0, 0, 0));
+	modelManager.loadWaterModel("objects/plane.obj", glm::vec3(0, 0, 0));
 	modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 50, 0));
 }
 
@@ -236,6 +236,7 @@ int main(int argc, char** argv)
 
 	GLuint program = CompileShader("phong.vert", "phong.frag");
 	GLuint programShadow = CompileShader("shadow.vert", "shadow.frag");
+	GLuint programWater = CompileShader("water.vert", "water.frag");
 
 	int frame = 0;
 	while (!glfwWindowShouldClose(window))
@@ -274,9 +275,9 @@ int main(int argc, char** argv)
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+
+
 		glUseProgram(program);
-
-
 		glm::mat4 projection = glm::perspective(glm::radians(45.f), (float)WIDTH / (float)HEIGHT, .01f, 100000.f);
 		glm::mat4 view = glm::lookAt(Camera.Position, Camera.Position + Camera.Front, Camera.Up);
 		glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -291,6 +292,9 @@ int main(int argc, char** argv)
 			glBindBuffer(GL_ARRAY_BUFFER, entry.VBO);
 		}
 		modelManager.drawModel(program, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
+
+		glUseProgram(programWater);
+		modelManager.drawWaterModel(program, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

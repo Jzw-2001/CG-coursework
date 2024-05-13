@@ -130,6 +130,23 @@ bool ModelManager::loadModel(const std::string& filePath, const glm::vec3& pos) 
     return true;
 }
 
+bool ModelManager::loadWaterModel(const std::string& filePath, const glm::vec3& pos) {
+	objl::Loader Loader;
+	Loader.LoadedIndices.clear();
+	Loader.LoadedVertices.clear();
+	Loader.LoadedMeshes.clear();
+
+	if (!Loader.LoadFile(filePath)) {
+		std::cerr << "Failed to load file: " << filePath << std::endl;
+		return false;
+	}
+	for (auto& mesh : Loader.LoadedMeshes) {
+		MeshEntry entry = setupMeshEntry(mesh, pos);
+		waterMeshEntries.push_back(entry);
+	}
+	return true;
+}
+
 void ModelManager::drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix) {
 
 	//cout << "Drawing model" << endl;
@@ -145,6 +162,102 @@ void ModelManager::drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3
 
 	// Iterate through each mesh entry
 	for (auto& entry : meshEntries) {
+		glBindVertexArray(entry.VAO);
+
+		// Set material properties
+		glUniform3fv(glGetUniformLocation(shaderProgram, "material.ambient"), 1, glm::value_ptr(entry.Ka));
+		glUniform3fv(glGetUniformLocation(shaderProgram, "material.diffuse"), 1, glm::value_ptr(entry.Kd));
+		glUniform3fv(glGetUniformLocation(shaderProgram, "material.specular"), 1, glm::value_ptr(entry.Ks));
+		glUniform1f(glGetUniformLocation(shaderProgram, "material.shininess"), entry.Ns);
+		glUniform1f(glGetUniformLocation(shaderProgram, "material.transparency"), entry.d);
+
+		// Set lighting properties
+		glUniform3fv(glGetUniformLocation(shaderProgram, "lightPos"), 1, glm::value_ptr(lightPos));
+		glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, glm::value_ptr(cameraPosition));
+		glUniform3fv(glGetUniformLocation(shaderProgram, "lightColor"), 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 1.0f))); // Assuming white light
+
+
+		// texture_amibient
+		bool useTexture = false;
+		if (entry.textureAmbientID != 0) {
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, entry.textureAmbientID);
+			glUniform1i(glGetUniformLocation(shaderProgram, "texture_ambient"), 1);
+			useTexture = true;
+		}
+		// texture_diffuse
+		if (entry.textureDiffuseID != 0) {
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, entry.textureDiffuseID);
+			glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 2);
+			useTexture = true;
+		}
+		// texture_specular
+		if (entry.textureSpecularID != 0) {
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, entry.textureSpecularID);
+			glUniform1i(glGetUniformLocation(shaderProgram, "texture_specular"), 3);
+			useTexture = true;
+		}
+		// texture_specular_highlight
+		if (entry.textureSpecularHeighlightID != 0) {
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, entry.textureSpecularHeighlightID);
+			glUniform1i(glGetUniformLocation(shaderProgram, "texture_specular_highlight"), 4);
+			useTexture = true;
+		}
+		// texture_alpha
+		if (entry.textureAlphaID != 0) {
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, entry.textureAlphaID);
+			glUniform1i(glGetUniformLocation(shaderProgram, "texture_alpha"), 5);
+			glUniform1i(glGetUniformLocation(shaderProgram, "has_alpha"), true);
+		}
+		else {
+			// uniform bool has_alpha = false
+			glUniform1i(glGetUniformLocation(shaderProgram, "has_alpha"), false);
+		}
+		// texture_bump
+		if (entry.BumpMapID != 0) {
+			glActiveTexture(GL_TEXTURE6);
+			glBindTexture(GL_TEXTURE_2D, entry.BumpMapID);
+			glUniform1i(glGetUniformLocation(shaderProgram, "texture_bump"), 6);
+		}
+
+		if (useTexture) {
+			glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), true);
+		}
+		else {
+			glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), false);
+		}
+		// Model matrix setup
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, entry.position); // Assuming all meshes are centered
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+		// Draw the mesh
+		glDrawArrays(GL_TRIANGLES, 0, entry.numIndices);
+	}
+
+	// Unbind VAO after drawing
+	glBindVertexArray(0);
+}
+
+void ModelManager::drawWaterModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix) {
+
+	//cout << "Drawing model" << endl;
+
+	// Activate shader program
+	glUseProgram(shaderProgram);
+
+	// Set the light space matrix and the shadow map
+	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+	glUniform1i(glGetUniformLocation(shaderProgram, "shadowMap"), 0);
+
+	// Iterate through each mesh entry
+	for (auto& entry : waterMeshEntries) {
 		glBindVertexArray(entry.VAO);
 
 		// Set material properties

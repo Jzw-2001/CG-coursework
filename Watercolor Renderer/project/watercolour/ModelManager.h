@@ -52,6 +52,7 @@ public:
 	std::vector<MeshEntry> waterMeshEntries;
     ModelManager();
     bool loadModel(const std::string& filePath, const glm::vec3& initialPosition);
+	bool loadWaterModel(const std::string& filePath, const glm::vec3& initialPosition);
     void drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix);
 	void drawWaterModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix);
 	void drawShadowMap(GLuint shaderProgram, glm::mat4 lightSpaceMatrix);
