@@ -43,7 +43,7 @@ GLuint ModelManager::loadTexture(const std::string& path) {
 	return textureID;
 }
 
-void ModelManager::setupMeshEntry(const objl::Mesh& mesh, const glm::vec3& position) {
+MeshEntry ModelManager::setupMeshEntry(const objl::Mesh& mesh, const glm::vec3& position) {
 	MeshEntry entry;
 	entry.position = position;
 
@@ -109,7 +109,8 @@ void ModelManager::setupMeshEntry(const objl::Mesh& mesh, const glm::vec3& posit
 	entry.d = mesh.MeshMaterial.d;
 	entry.illum = mesh.MeshMaterial.illum;
 
-	meshEntries.push_back(entry);
+	//meshEntries.push_back(entry);
+	return entry;
 }
 
 bool ModelManager::loadModel(const std::string& filePath, const glm::vec3& pos) {
@@ -123,7 +124,8 @@ bool ModelManager::loadModel(const std::string& filePath, const glm::vec3& pos) 
         return false;
     }
     for (auto& mesh : Loader.LoadedMeshes) {
-        setupMeshEntry(mesh, pos);
+        MeshEntry entry = setupMeshEntry(mesh, pos);
+		meshEntries.push_back(entry);
     }
     return true;
 }
@@ -238,5 +240,13 @@ void ModelManager::drawShadowMap(GLuint shaderProgram, glm::mat4 lightSpaceMatri
 		glDrawArrays(GL_TRIANGLES, 0, entry.numIndices);
 	}
 
-	//glBindVertexArray(0);
+	for (auto& entry : waterMeshEntries) {
+		glBindVertexArray(entry.VAO);
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, entry.position);
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+		glDrawArrays(GL_TRIANGLES, 0, entry.numIndices);
+	}
 }

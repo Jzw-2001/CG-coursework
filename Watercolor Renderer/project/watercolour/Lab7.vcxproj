@@ -144,6 +144,8 @@
     <None Include="phong.vert" />
     <None Include="shadow.frag" />
     <None Include="shadow.vert" />
+    <None Include="water.frag" />
+    <None Include="water.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitmap.h" />
