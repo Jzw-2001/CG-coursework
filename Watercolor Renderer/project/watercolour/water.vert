@@ -105,9 +105,11 @@ float fbm(vec3 p) {
 
 void main() {
     // 使用噪声函数来调整顶点位置
-    float height = fbm(vec3(aPos.x * 2.0, aPos.z * 2.0, time * 0.2));
+    float frequency = 0.1; // 降低频率，增加波长
+    float height = fbm(vec3(aPos.x * frequency, aPos.z * frequency, time * 0.2));
+    float amplitude = 20.0; // 增加波浪的高度
     vec3 displacedPos = aPos;
-    displacedPos.y += height * 10.0; // 调整波动幅度
+    displacedPos.y += height * amplitude;
 
     TexCoords = aTexCoords;
     Normal = mat3(transpose(inverse(model))) * aNormal;  // Correct for non-uniform scaling

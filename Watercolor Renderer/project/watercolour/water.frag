@@ -129,9 +129,10 @@ float ShadowCalculation(vec4 fragPosLightSpace) {
 void main() {
     // 动态改变法线来模拟水波，增加振幅和频率
     vec3 disturbedNormal = Normal;
-    float waveStrength = 0.6;
-    disturbedNormal.x += fbm(vec3(FragPos.x * 2.0, FragPos.y, time * 0.2)) * waveStrength;
-    disturbedNormal.z += fbm(vec3(FragPos.z * 2.0, FragPos.y, time * 0.2)) * waveStrength;
+    float frequency = 0.1; // 降低频率，增加波长
+    float waveStrength = 1.0; // 增加波浪的高度
+    disturbedNormal.x += fbm(vec3(FragPos.x * frequency, FragPos.y, time * 0.2)) * waveStrength;
+    disturbedNormal.z += fbm(vec3(FragPos.z * frequency, FragPos.y, time * 0.2)) * waveStrength;
 
     disturbedNormal = normalize(disturbedNormal);
 

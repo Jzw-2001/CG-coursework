@@ -159,8 +159,8 @@ string GetCurrentWorkingDir() {
 
 void LoadModels(ModelManager &modelManager) {
 	std::cout << "workingdir: " << GetCurrentWorkingDir().c_str() << std::endl;
-	modelManager.loadWaterModel("objects/plane2.obj", glm::vec3(0, 0, 0));
-	modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 50, 0));
+	modelManager.loadWaterModel("objects/plane2.obj", glm::vec3(0, 0, -50));
+	modelManager.loadModel("objects/BoatModel.obj", glm::vec3(0, 0, 0));
 }
 
 

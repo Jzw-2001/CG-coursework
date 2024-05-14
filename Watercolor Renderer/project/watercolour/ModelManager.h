@@ -30,7 +30,8 @@ struct MeshEntry {
 	float d;       // Transparency
 	int illum;     // Illumination model
 
-	glm::vec3 position; // Ìí¼ÓÎ»ÖÃ×Ö¶Î
+	glm::vec3 position; // Position of the object
+	glm::vec3 rotation; // Rotation of the object
 	
 	MeshEntry() : VAO(0), VBO(0), textureAmbientID(0), textureDiffuseID(0),
 		textureSpecularID(0), textureSpecularHeighlightID(0), textureAlphaID(0),
