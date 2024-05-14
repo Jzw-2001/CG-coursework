@@ -162,9 +162,22 @@ void LoadModels(ModelManager &modelManager) {
 	modelManager.loadWaterModel("objects/plane2.obj", glm::vec3(0, 0, -50));
 	//modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
 	modelManager.loadModel("objects/boat2.obj", glm::vec3(0, 0, 0), glm::vec3(90, 0, 0));
-	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(10, 0, 0), glm::vec3(90, 0, 0));
-	//modelManager.loadCloudModel("objects/boat2.obj", glm::vec3(10, 0, 0));
+	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(10, 40, -10), glm::vec3(90, 90, 0));
+	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(10, 40, 30), glm::vec3(90, 90, 0));
 
+}
+
+
+
+void CloudShift(ModelManager& modelManager, glm::vec3 direction, float speed, float deltaTime) {
+	//cout << "CloudShift" << endl;
+	//cout << "direction: " << direction.x << " " << direction.y << " " << direction.z << endl;
+	//cout << "speed: " << speed << endl;
+	//cout << "deltaTime: " << deltaTime << endl;
+
+	for (auto& entry : modelManager.cloudMeshEntries) {
+		entry.position += direction * speed * deltaTime;
+	}
 }
 
 
@@ -260,9 +273,23 @@ int main(int argc, char** argv)
 
 	int frame = 0;
 	float currentTime = 0.f;
+	float previousTime = 0.f;
+
+
+	float cloudLoopDuration = 10.f;
+	float currentCloudTime = 0.f;
+	glm::vec3 cloudShiftDirection = glm::vec3(-1, 0, 0);
+	float cloudSpeed = 0.1f;
+
+
 	while (!glfwWindowShouldClose(window))
 	{
 		currentTime = glfwGetTime();
+		//cout << currentTime << endl;
+		float deltaTime = currentTime - previousTime;
+		//cout << deltaTime << endl;
+		//cout << "-------------------\n";
+		previousTime = currentTime;
 		// shadow mapping
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.depthMapFBO);
@@ -335,6 +362,15 @@ int main(int argc, char** argv)
 
 
 		// render cloud
+		currentCloudTime += deltaTime;
+		cout << currentCloudTime << endl;
+		if (currentCloudTime > cloudLoopDuration) {
+			CloudShift(modelManager, cloudShiftDirection, cloudSpeed, - currentCloudTime);
+			currentCloudTime = 0.f;
+		}
+		else {
+			CloudShift(modelManager, cloudShiftDirection, cloudSpeed, deltaTime);
+		}
 		glDepthMask(GL_FALSE);
 		glUseProgram(programCloud);
 		glUniformMatrix4fv(glGetUniformLocation(programCloud, "view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -344,11 +380,11 @@ int main(int argc, char** argv)
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, whiteTexture);
 		glUniform1i(glGetUniformLocation(programCloud, "texture1"), 0);
-		for (auto& entry : modelManager.cloudMeshEntries) {
+		/*for (auto& entry : modelManager.cloudMeshEntries) {
 			glBindVertexArray(entry.VAO);
 			glBindBuffer(GL_ARRAY_BUFFER, entry.VBO);
-		}
-		modelManager.drawCloudModel(programCloud, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix, glm::vec3(10, 0, 0), glm::vec3(0, 0, 0));
+		}*/
+		modelManager.drawCloudModel(programCloud, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
 		glDepthMask(GL_TRUE);
 
 

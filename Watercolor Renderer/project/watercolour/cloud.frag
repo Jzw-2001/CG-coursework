@@ -34,7 +34,7 @@ void main()
     float n = smoothNoise(TexCoord * 10.0 + vec2(time * 0.1, time * 0.1));
 
     // Apply the noise to the alpha value to create the cloud effect
-    float alpha = mix(0.4, 0.7, n);
+    float alpha = mix(0.2, 0.4, n);
 
     // Set the cloud color (white) and use the alpha value
     vec4 cloudColor = vec4(1.0, 1.0, 1.0, alpha);

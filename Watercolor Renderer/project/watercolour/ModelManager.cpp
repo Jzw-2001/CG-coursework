@@ -441,7 +441,7 @@ bool ModelManager::loadCloudModel(const std::string& filePath, const glm::vec3& 
 	return true;
 }
 
-void ModelManager::drawCloudModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix, glm::vec3 position, glm::vec3 rotation) {
+void ModelManager::drawCloudModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix) {
 
 	//cout << "Drawing model" << endl;
 
@@ -457,6 +457,7 @@ void ModelManager::drawCloudModel(GLuint shaderProgram, glm::vec3 lightPos, glm:
 	// Iterate through each mesh entry
 	for (auto& entry : cloudMeshEntries) {
 		glBindVertexArray(entry.VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, entry.VBO);
 
 		// Set material properties
 		glUniform3fv(glGetUniformLocation(shaderProgram, "material.ambient"), 1, glm::value_ptr(entry.Ka));
@@ -530,7 +531,7 @@ void ModelManager::drawCloudModel(GLuint shaderProgram, glm::vec3 lightPos, glm:
 		model = glm::rotate(model, glm::radians(entry.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate around X axis
 		model = glm::rotate(model, glm::radians(entry.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f)); // Rotate around Y axis
 		model = glm::rotate(model, glm::radians(entry.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate around Z axis
-		model = glm::translate(model, position); // Assuming all meshes are centered
+		model = glm::translate(model, entry.position); // Assuming all meshes are centered
 		//cout << "model after:" << model[0][0] << " " << model[0][1] << " " << model[0][2] << " " << model[0][3] << endl;
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
