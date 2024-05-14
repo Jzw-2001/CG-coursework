@@ -162,7 +162,7 @@ void LoadModels(ModelManager &modelManager) {
 	modelManager.loadWaterModel("objects/plane2.obj", glm::vec3(0, 0, -50));
 	//modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
 	modelManager.loadModel("objects/boat2.obj", glm::vec3(0, 0, 0), glm::vec3(90, 0, 0));
-	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(10, 0, 0));
+	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(10, 0, 0), glm::vec3(90, 0, 0));
 	//modelManager.loadCloudModel("objects/boat2.obj", glm::vec3(10, 0, 0));
 
 }
@@ -335,6 +335,7 @@ int main(int argc, char** argv)
 
 
 		// render cloud
+		glDepthMask(GL_FALSE);
 		glUseProgram(programCloud);
 		glUniformMatrix4fv(glGetUniformLocation(programCloud, "view"), 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(glGetUniformLocation(programCloud, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -348,6 +349,8 @@ int main(int argc, char** argv)
 			glBindBuffer(GL_ARRAY_BUFFER, entry.VBO);
 		}
 		modelManager.drawCloudModel(programCloud, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix, glm::vec3(10, 0, 0), glm::vec3(0, 0, 0));
+		glDepthMask(GL_TRUE);
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

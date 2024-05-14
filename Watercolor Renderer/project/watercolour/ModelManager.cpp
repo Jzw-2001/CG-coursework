@@ -424,7 +424,7 @@ void ModelManager::drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3
 	glBindVertexArray(0);
 }
 
-bool ModelManager::loadCloudModel(const std::string& filePath, const glm::vec3& initialPosition) {
+bool ModelManager::loadCloudModel(const std::string& filePath, const glm::vec3& initialPosition, const glm::vec3& initialRotation) {
 	objl::Loader Loader;
 	Loader.LoadedIndices.clear();
 	Loader.LoadedVertices.clear();
@@ -435,7 +435,7 @@ bool ModelManager::loadCloudModel(const std::string& filePath, const glm::vec3& 
 		return false;
 	}
 	for (auto& mesh : Loader.LoadedMeshes) {
-		MeshEntry entry = setupMeshEntry(mesh, initialPosition);
+		MeshEntry entry = setupMeshEntry(mesh, initialPosition, initialRotation);
 		cloudMeshEntries.push_back(entry);
 	}
 	return true;
