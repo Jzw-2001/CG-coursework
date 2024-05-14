@@ -161,9 +161,9 @@ void LoadModels(ModelManager &modelManager) {
 	std::cout << "workingdir: " << GetCurrentWorkingDir().c_str() << std::endl;
 	modelManager.loadWaterModel("objects/plane2.obj", glm::vec3(0, 0, -50));
 	//modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
-	modelManager.loadModel("objects/boat2.obj", glm::vec3(0, 0, 0), glm::vec3(90, 0, 0));
-	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(10, 40, -10), glm::vec3(90, 90, 0));
-	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(10, 40, 30), glm::vec3(90, 90, 0));
+	modelManager.loadModel("objects/boat2.obj", glm::vec3(0, 0, -10), glm::vec3(90, 0, 0));
+	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(10, -10, 40), glm::vec3(90, 90, 0));
+	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(-10, 10, 40), glm::vec3(90, 90, 0));
 
 }
 
@@ -237,6 +237,58 @@ GLuint generateWhiteTexture() {
 }
 
 
+
+float boatSpeed;
+float boatRotationSpeed;
+glm::vec3 boatForward;
+glm::vec3 boatRight;
+
+
+void processBoatMovement(GLFWwindow* window, std::vector<MeshEntry>& boatEntries, float deltaTime, glm::vec3& boatForward, glm::vec3& boatRight, float boatSpeed, float boatRotationSpeed) {
+	// up arrow to move forward
+	//if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+	//	//boatEntry.position += boatForward * boatSpeed * deltaTime;
+	//	for (auto& boatEntry : boatEntries) {
+	//		boatEntry.position += boatForward * boatSpeed * deltaTime;
+	//	}
+	//}
+
+	//// right arrow to turn right
+	//if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+	//	glm::vec3 newForward = glm::normalize(boatForward * glm::cos(boatRotationSpeed * deltaTime) + boatRight * glm::sin(boatRotationSpeed * deltaTime));
+	//	glm::vec3 newRight = glm::normalize(glm::cross(glm::vec3(0, 1, 0), newForward));
+	//	boatForward = newForward;
+	//	boatRight = newRight;
+
+	//	// Calculate yaw angle from the new forward vector
+	//	float yaw = glm::degrees(glm::atan(newForward.z, newForward.x));
+	//	//boatEntry.rotation.y = -yaw;
+	//	for (auto& boatEntry : boatEntries) {
+	//		boatEntry.rotation.y = -yaw;
+	//	}
+	//}
+
+	//// left arrow to turn left
+	//if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+	//	glm::vec3 newForward = glm::normalize(boatForward * glm::cos(-boatRotationSpeed * deltaTime) + boatRight * glm::sin(-boatRotationSpeed * deltaTime));
+	//	glm::vec3 newRight = glm::normalize(glm::cross(glm::vec3(0, 1, 0), newForward));
+	//	boatForward = newForward;
+	//	boatRight = newRight;
+
+	//	// Calculate yaw angle from the new forward vector
+	//	float yaw = glm::degrees(glm::atan(newForward.z, newForward.x));
+	//	//boatEntry.rotation.y = -yaw;
+	//	for (auto& boatEntry : boatEntries) {
+	//		boatEntry.rotation.y = -yaw;
+	//	
+	//	}
+	//}
+}
+
+
+
+
+
 int main(int argc, char** argv)
 {
 	glfwInit();
@@ -259,7 +311,11 @@ int main(int argc, char** argv)
 	InitCamera(Camera);
 	cam_dist = 5.f;
 	MoveAndOrientCamera(Camera, glm::vec3(0, 0, 0), cam_dist, 0.f, 0.f);
-
+	
+	//Camera.Position = glm::vec3(-2.05, -23.0, 90.4);
+	//Camera.Front = glm::vec3(0.021979, 0.245308, -0.969196);
+	//Camera.Up = glm::vec3(-0.0556155, 0.969445, 0.245245);
+	//Camera.Right = glm::vec3(-0.999743, 0.0, -0.0226717);
 
 
 	ModelManager modelManager;
@@ -276,14 +332,32 @@ int main(int argc, char** argv)
 	float previousTime = 0.f;
 
 
-	float cloudLoopDuration = 10.f;
+	float cloudLoopDuration = 60.f;
 	float currentCloudTime = 0.f;
 	glm::vec3 cloudShiftDirection = glm::vec3(-1, 0, 0);
-	float cloudSpeed = 0.1f;
+	float cloudSpeed = 1.f;
 
+	//glfwSwapInterval(1); // 1 表示启用 V-Sync，0 表示禁用
+
+	boatForward = glm::normalize(glm::vec3(0, 0, -1));
+	boatRight = glm::normalize(glm::cross(glm::vec3(0, 1, 0), boatForward));
+	boatSpeed = 10.f;
+	boatRotationSpeed = 1.0f;
 
 	while (!glfwWindowShouldClose(window))
 	{
+		lightPos = Camera.Position;
+		lightDirection = Camera.Front;
+
+		frame++;
+		if (frame % 1000 == 0) {
+			cout << "Camera.Position: " << Camera.Position.x << " " << Camera.Position.y << " " << Camera.Position.z << endl;
+			cout << "Camera.Front: " << Camera.Front.x << " " << Camera.Front.y << " " << Camera.Front.z << endl;
+			cout << "Camera.Up: " << Camera.Up.x << " " << Camera.Up.y << " " << Camera.Up.z << endl;
+			cout << "Camera.Right: " << Camera.Right.x << " " << Camera.Right.y << " " << Camera.Right.z << endl;
+			cout << "-------------------\n";
+		}
+
 		currentTime = glfwGetTime();
 		//cout << currentTime << endl;
 		float deltaTime = currentTime - previousTime;
@@ -305,11 +379,11 @@ int main(int argc, char** argv)
 
 		modelManager.drawShadowMap(programShadow, lightSpaceMatrix);
 
-		frame++;
+		/*frame++;
 		if (frame % 1000 == 0) {
 			frame = 0;
 			saveShadowMapToBitmap(shadowMap.Texture, SHADOW_WIDTH, SHADOW_HEIGHT);
-		}
+		}*/
 
 		glBindVertexArray(0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -317,6 +391,8 @@ int main(int argc, char** argv)
 
 		
 		// render boat
+
+		processBoatMovement(window, modelManager.meshEntries, deltaTime, boatForward, boatRight, boatSpeed, boatRotationSpeed);
 		glViewport(0, 0, WIDTH, HEIGHT);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		static const GLfloat bgd[] = { .8f, .8f, .8f, 1.f };
@@ -363,7 +439,7 @@ int main(int argc, char** argv)
 
 		// render cloud
 		currentCloudTime += deltaTime;
-		cout << currentCloudTime << endl;
+		//cout << currentCloudTime << endl;
 		if (currentCloudTime > cloudLoopDuration) {
 			CloudShift(modelManager, cloudShiftDirection, cloudSpeed, - currentCloudTime);
 			currentCloudTime = 0.f;

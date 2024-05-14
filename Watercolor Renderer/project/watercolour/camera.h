@@ -48,6 +48,8 @@ float cam_dist = 2.f;
 const float movementSpeed = .5f;
 float MouseSensitivity = 1.f;
 
+
+
 void MoveAndOrientCamera(SCamera& in, glm::vec3 target, float distance, float xoffset, float yoffset)
 {
 	// Calculate the new Yaw and Pitch angles based on the offsets

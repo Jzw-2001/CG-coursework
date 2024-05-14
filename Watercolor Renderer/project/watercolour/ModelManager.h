@@ -59,7 +59,7 @@ public:
 	bool loadCloudModel(const std::string& filePath, const glm::vec3& initialPosition, const glm::vec3& initialRotation);
 	//void cleanup();
 	void drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix);
-	void drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix, glm::vec3 position, glm::vec3 rotation);
+	//void drawModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix, glm::vec3 position, glm::vec3 rotation);
 	void drawWaterModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix);
 	//void drawCloudModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix, glm::vec3 position, glm::vec3 rotation);
 	void drawCloudModel(GLuint shaderProgram, glm::vec3 lightPos, glm::vec3 cameraPosition, GLuint shadowMap, glm::mat4 lightSpaceMatrix);
