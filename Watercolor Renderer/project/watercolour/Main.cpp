@@ -162,6 +162,9 @@ void LoadModels(ModelManager &modelManager) {
 	modelManager.loadWaterModel("objects/plane2.obj", glm::vec3(0, 0, -50));
 	//modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
 	modelManager.loadModel("objects/boat2.obj", glm::vec3(0, 0, 0), glm::vec3(90, 0, 0));
+	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(10, 0, 0));
+	//modelManager.loadCloudModel("objects/boat2.obj", glm::vec3(10, 0, 0));
+
 }
 
 
@@ -207,6 +210,20 @@ void saveShadowMapToBitmap(unsigned int Texture, int w, int h) {
 }
 
 
+GLuint generateWhiteTexture() {
+	unsigned char whitePixel[4] = { 255, 255, 255, 255 };
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, whitePixel);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	return textureID;
+}
+
+
 int main(int argc, char** argv)
 {
 	glfwInit();
@@ -238,19 +255,20 @@ int main(int argc, char** argv)
 	GLuint program = CompileShader("phong.vert", "phong.frag");
 	GLuint programShadow = CompileShader("shadow.vert", "shadow.frag");
 	GLuint programWater = CompileShader("water.vert", "water.frag");
+	GLuint programCloud = CompileShader("cloud.vert", "cloud.frag");
+	GLuint whiteTexture = generateWhiteTexture();
 
 	int frame = 0;
 	float currentTime = 0.f;
 	while (!glfwWindowShouldClose(window))
 	{
 		currentTime = glfwGetTime();
-		// Generate depth map
+		// shadow mapping
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.depthMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 
-		// Configure shader and matrices
 		glm::mat4 lightProjection, lightView;
 		glm::mat4 lightSpaceMatrix;
 		float near_plane = 1.0f, far_plane = 700.5f;
@@ -258,19 +276,20 @@ int main(int argc, char** argv)
 		lightView = glm::lookAt(lightPos, lightPos + lightDirection, glm::vec3(0.0, 1.0, 0.0));
 		lightSpaceMatrix = lightProjection * lightView;
 
-		// Render scene as normal with shadow mapping (using depth map)
 		modelManager.drawShadowMap(programShadow, lightSpaceMatrix);
 
 		frame++;
-		if (frame % 1000 == 0)
+		if (frame % 1000 == 0) {
+			frame = 0;
 			saveShadowMapToBitmap(shadowMap.Texture, SHADOW_WIDTH, SHADOW_HEIGHT);
+		}
 
 		glBindVertexArray(0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
 		
-		// Render scene as normal with shadow mapping (using depth map)
+		// render boat
 		glViewport(0, 0, WIDTH, HEIGHT);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		static const GLfloat bgd[] = { .8f, .8f, .8f, 1.f };
@@ -298,7 +317,7 @@ int main(int argc, char** argv)
 		modelManager.drawModel(program, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
 
 
-
+		// render water
 		glUseProgram(programWater);
 		glUniformMatrix4fv(glGetUniformLocation(programWater, "view"), 1, GL_FALSE, glm::value_ptr(view));	
 		glUniformMatrix4fv(glGetUniformLocation(programWater, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -315,8 +334,20 @@ int main(int argc, char** argv)
 		modelManager.drawWaterModel(programWater, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
 
 
-
-
+		// render cloud
+		glUseProgram(programCloud);
+		glUniformMatrix4fv(glGetUniformLocation(programCloud, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(programCloud, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(programCloud, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+		glUniform1f(glGetUniformLocation(programCloud, "time"), currentTime);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, whiteTexture);
+		glUniform1i(glGetUniformLocation(programCloud, "texture1"), 0);
+		for (auto& entry : modelManager.cloudMeshEntries) {
+			glBindVertexArray(entry.VAO);
+			glBindBuffer(GL_ARRAY_BUFFER, entry.VBO);
+		}
+		modelManager.drawCloudModel(programCloud, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix, glm::vec3(10, 0, 0), glm::vec3(0, 0, 0));
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

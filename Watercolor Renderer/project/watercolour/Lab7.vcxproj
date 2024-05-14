@@ -140,6 +140,8 @@
     <ClCompile Include="obj_loader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cloud.frag" />
+    <None Include="cloud.vert" />
     <None Include="phong.frag" />
     <None Include="phong.vert" />
     <None Include="shadow.frag" />

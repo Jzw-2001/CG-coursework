@@ -47,6 +47,12 @@
     <None Include="water.vert">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="cloud.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="cloud.vert">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
