@@ -295,8 +295,9 @@ int main(int argc, char** argv)
 			glBindBuffer(GL_ARRAY_BUFFER, entry.VBO);
 		}
 
-
 		modelManager.drawModel(program, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
+
+
 
 		glUseProgram(programWater);
 		glUniformMatrix4fv(glGetUniformLocation(programWater, "view"), 1, GL_FALSE, glm::value_ptr(view));	
@@ -310,7 +311,12 @@ int main(int argc, char** argv)
 			glBindVertexArray(entry.VAO);
 			glBindBuffer(GL_ARRAY_BUFFER, entry.VBO);
 		}
+
 		modelManager.drawWaterModel(programWater, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
+
+
+
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
