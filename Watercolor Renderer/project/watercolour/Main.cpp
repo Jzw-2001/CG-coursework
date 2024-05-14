@@ -239,8 +239,10 @@ int main(int argc, char** argv)
 	GLuint programWater = CompileShader("water.vert", "water.frag");
 
 	int frame = 0;
+	float currentTime = 0.f;
 	while (!glfwWindowShouldClose(window))
 	{
+		currentTime = glfwGetTime();
 		// Generate depth map
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.depthMapFBO);
@@ -294,7 +296,18 @@ int main(int argc, char** argv)
 		modelManager.drawModel(program, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
 
 		glUseProgram(programWater);
-		modelManager.drawWaterModel(program, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
+		glUniformMatrix4fv(glGetUniformLocation(programWater, "view"), 1, GL_FALSE, glm::value_ptr(view));	
+		glUniformMatrix4fv(glGetUniformLocation(programWater, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(programWater, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+		glUniform1f(glGetUniformLocation(programWater, "time"), currentTime);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, shadowMap.Texture);
+		glUniform1i(glGetUniformLocation(programWater, "shadowMap"), 0);
+		for (auto& entry : modelManager.waterMeshEntries) {
+			glBindVertexArray(entry.VAO);
+			glBindBuffer(GL_ARRAY_BUFFER, entry.VBO);
+		}
+		modelManager.drawWaterModel(programWater, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
