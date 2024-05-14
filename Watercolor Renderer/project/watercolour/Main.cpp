@@ -160,7 +160,8 @@ string GetCurrentWorkingDir() {
 void LoadModels(ModelManager &modelManager) {
 	std::cout << "workingdir: " << GetCurrentWorkingDir().c_str() << std::endl;
 	modelManager.loadWaterModel("objects/plane2.obj", glm::vec3(0, 0, -50));
-	modelManager.loadModel("objects/BoatModel.obj", glm::vec3(0, 0, 0));
+	//modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
+	modelManager.loadModel("objects/boat2.obj", glm::vec3(0, 0, 0), glm::vec3(90, 0, 0));
 }
 
 
@@ -293,6 +294,8 @@ int main(int argc, char** argv)
 			glBindVertexArray(entry.VAO);
 			glBindBuffer(GL_ARRAY_BUFFER, entry.VBO);
 		}
+
+
 		modelManager.drawModel(program, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
 
 		glUseProgram(programWater);
