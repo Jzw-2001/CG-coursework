@@ -88,7 +88,7 @@ void processKeyboard(GLFWwindow* window)
 	}
 
 	if (cam_changed) {
-		MoveAndOrientCamera(Camera, glm::vec3(0.f, 0.f, 0.f), cam_dist * 0.1f, x_offset * 0.1f, y_offset * 0.1f);
+		MoveAndOrientCamera(Camera, glm::vec3(0.f, 0.f, 0.f), cam_dist, x_offset * 0.1f, y_offset * 0.1f);
 	}
 }
 
@@ -162,8 +162,9 @@ void LoadModels(ModelManager &modelManager) {
 	modelManager.loadWaterModel("objects/plane2.obj", glm::vec3(0, 0, -50));
 	//modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
 	modelManager.loadModel("objects/boat2.obj", glm::vec3(0, 0, -10), glm::vec3(90, 0, 0));
-	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(10, -10, 40), glm::vec3(90, 90, 0));
-	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(-10, 10, 40), glm::vec3(90, 90, 0));
+	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(10, -10, 37), glm::vec3(90, 90, 0));
+	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(30, 10, 42), glm::vec3(90, 90, 0));
+	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(40, -15, 32), glm::vec3(90, 90, 0));
 
 }
 
@@ -238,52 +239,66 @@ GLuint generateWhiteTexture() {
 
 
 
-float boatSpeed;
-float boatRotationSpeed;
-glm::vec3 boatForward;
-glm::vec3 boatRight;
-
 
 void processBoatMovement(GLFWwindow* window, std::vector<MeshEntry>& boatEntries, float deltaTime, glm::vec3& boatForward, glm::vec3& boatRight, float boatSpeed, float boatRotationSpeed) {
-	// up arrow to move forward
-	//if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-	//	//boatEntry.position += boatForward * boatSpeed * deltaTime;
-	//	for (auto& boatEntry : boatEntries) {
-	//		boatEntry.position += boatForward * boatSpeed * deltaTime;
-	//	}
-	//}
+	// Up arrow to move forward
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		for (auto& boatEntry : boatEntries) {
+			boatEntry.position += boatForward * boatSpeed * deltaTime;
+		}
+	}
 
-	//// right arrow to turn right
-	//if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-	//	glm::vec3 newForward = glm::normalize(boatForward * glm::cos(boatRotationSpeed * deltaTime) + boatRight * glm::sin(boatRotationSpeed * deltaTime));
-	//	glm::vec3 newRight = glm::normalize(glm::cross(glm::vec3(0, 1, 0), newForward));
-	//	boatForward = newForward;
-	//	boatRight = newRight;
+	// Right arrow to turn right
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		glm::vec3 newForward = glm::normalize(boatForward * glm::cos(-boatRotationSpeed * deltaTime) + boatRight * glm::sin(-boatRotationSpeed * deltaTime));
+		glm::vec3 newRight = glm::normalize(glm::cross(glm::vec3(0, 0, 1), newForward));
 
-	//	// Calculate yaw angle from the new forward vector
-	//	float yaw = glm::degrees(glm::atan(newForward.z, newForward.x));
-	//	//boatEntry.rotation.y = -yaw;
-	//	for (auto& boatEntry : boatEntries) {
-	//		boatEntry.rotation.y = -yaw;
-	//	}
-	//}
+		// Calculate the dot product and clamp it to the valid range for acos
+		float dotProduct = glm::dot(boatForward, newForward);
+		dotProduct = glm::clamp(dotProduct, -1.0f, 1.0f);
 
-	//// left arrow to turn left
-	//if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-	//	glm::vec3 newForward = glm::normalize(boatForward * glm::cos(-boatRotationSpeed * deltaTime) + boatRight * glm::sin(-boatRotationSpeed * deltaTime));
-	//	glm::vec3 newRight = glm::normalize(glm::cross(glm::vec3(0, 1, 0), newForward));
-	//	boatForward = newForward;
-	//	boatRight = newRight;
+		// Calculate the angle between boatForward and newForward
+		float angle = glm::degrees(glm::acos(dotProduct));
 
-	//	// Calculate yaw angle from the new forward vector
-	//	float yaw = glm::degrees(glm::atan(newForward.z, newForward.x));
-	//	//boatEntry.rotation.y = -yaw;
-	//	for (auto& boatEntry : boatEntries) {
-	//		boatEntry.rotation.y = -yaw;
-	//	
-	//	}
-	//}
+		// Determine the direction of rotation
+		if (glm::dot(glm::cross(boatForward, newForward), glm::vec3(0, 0, 1)) < 0) {
+			angle = -angle;
+		}
+
+		boatForward = newForward;
+		boatRight = newRight;
+
+		for (auto& boatEntry : boatEntries) {
+			boatEntry.rotation.y += angle;
+		}
+	}
+
+	// Left arrow to turn left
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		glm::vec3 newForward = glm::normalize(boatForward * glm::cos(boatRotationSpeed * deltaTime) + boatRight * glm::sin(boatRotationSpeed * deltaTime));
+		glm::vec3 newRight = glm::normalize(glm::cross(glm::vec3(0, 0, 1), newForward));
+
+		// Calculate the dot product and clamp it to the valid range for acos
+		float dotProduct = glm::dot(boatForward, newForward);
+		dotProduct = glm::clamp(dotProduct, -1.0f, 1.0f);
+
+		// Calculate the angle between boatForward and newForward
+		float angle = glm::degrees(glm::acos(dotProduct));
+
+		// Determine the direction of rotation
+		if (glm::dot(glm::cross(boatForward, newForward), glm::vec3(0, 0, 1)) < 0) {
+			angle = -angle;
+		}
+
+		boatForward = newForward;
+		boatRight = newRight;
+
+		for (auto& boatEntry : boatEntries) {
+			boatEntry.rotation.y += angle;
+		}
+	}
 }
+
 
 
 
@@ -309,14 +324,22 @@ int main(int argc, char** argv)
 
 
 	InitCamera(Camera);
-	cam_dist = 5.f;
-	MoveAndOrientCamera(Camera, glm::vec3(0, 0, 0), cam_dist, 0.f, 0.f);
+	//cam_dist = 5.f;
+	//MoveAndOrientCamera(Camera, glm::vec3(0, 0, 0), glm::vec3(-0.191527, -11.986, 73.5966).length(), -0.149106f, -9.25002f);
 	
-	//Camera.Position = glm::vec3(-2.05, -23.0, 90.4);
-	//Camera.Front = glm::vec3(0.021979, 0.245308, -0.969196);
-	//Camera.Up = glm::vec3(-0.0556155, 0.969445, 0.245245);
-	//Camera.Right = glm::vec3(-0.999743, 0.0, -0.0226717);
-
+	/*Camera.Position: -0.191527 - 11.986 73.5966
+		Camera.Front : 0.00256854 0.160743 - 0.986993
+		Camera.Up : -0.000418314 0.986996 0.160742
+		Camera.Right : -0.999997 0 - 0.00260238
+		- 0.149106 - 9.25002*/
+	/*Camera.Position = glm::vec3(-0.191527, -11.986, 73.5966);
+	Camera.Front = glm::vec3(0.00256854, 0.160743, -0.986993);
+	Camera.Up = glm::vec3(-0.000418314, 0.986996, 0.160742);
+	Camera.Right = glm::vec3(-0.999997, 0.0, -0.00260238);
+	Camera.Yaw = -0.149106;
+	Camera.Pitch = -9.25002;
+	Camera.WorldUp = glm::vec3(0, 0, 1);
+	cam_dist = Camera.Position.length();*/
 
 	ModelManager modelManager;
 	LoadModels(modelManager);
@@ -332,22 +355,31 @@ int main(int argc, char** argv)
 	float previousTime = 0.f;
 
 
-	float cloudLoopDuration = 60.f;
+	float cloudLoopDuration = 40.f;
 	float currentCloudTime = 0.f;
 	glm::vec3 cloudShiftDirection = glm::vec3(-1, 0, 0);
 	float cloudSpeed = 1.f;
 
 	//glfwSwapInterval(1); // 1 表示启用 V-Sync，0 表示禁用
 
-	boatForward = glm::normalize(glm::vec3(0, 0, -1));
-	boatRight = glm::normalize(glm::cross(glm::vec3(0, 1, 0), boatForward));
+	float boatSpeed;
+	float boatRotationSpeed;
+	glm::vec3 boatForward;
+	glm::vec3 boatRight;
+
+	boatForward = glm::normalize(glm::vec3(0, -1, 0));
+	boatRight = glm::normalize(glm::vec3(-1, 0, 0));
 	boatSpeed = 10.f;
-	boatRotationSpeed = 1.0f;
+	boatRotationSpeed = 2.0f;
+
+	//MoveAndOrientCamera(Camera, glm::vec3(0, 0, 0), glm::vec3(-0.191527, -11.986, 73.5966).length(), -0.149106f, -9.25002f);
+
+	lightPos = Camera.Position;
+	lightDirection = Camera.Front;
 
 	while (!glfwWindowShouldClose(window))
 	{
-		lightPos = Camera.Position;
-		lightDirection = Camera.Front;
+		
 
 		frame++;
 		if (frame % 1000 == 0) {
@@ -355,7 +387,12 @@ int main(int argc, char** argv)
 			cout << "Camera.Front: " << Camera.Front.x << " " << Camera.Front.y << " " << Camera.Front.z << endl;
 			cout << "Camera.Up: " << Camera.Up.x << " " << Camera.Up.y << " " << Camera.Up.z << endl;
 			cout << "Camera.Right: " << Camera.Right.x << " " << Camera.Right.y << " " << Camera.Right.z << endl;
-			cout << "-------------------\n";
+			cout << Camera.Yaw << " " << Camera.Pitch << endl;
+			/*cout << modelManager.meshEntries[0].position.x << " " << modelManager.meshEntries[0].position.y << " " << modelManager.meshEntries[0].position.z << endl;
+			cout << modelManager.meshEntries[0].rotation.x << " " << modelManager.meshEntries[0].rotation.y << " " << modelManager.meshEntries[0].rotation.z << endl;
+			cout << boatForward.x << " " << boatForward.y << " " << boatForward.z << endl;
+			cout << boatRight.x << " " << boatRight.y << " " << boatRight.z << endl;*/
+			//cout << "-------------------\n";
 		}
 
 		currentTime = glfwGetTime();

@@ -31,19 +31,27 @@ struct SCamera
 };
 
 
-void InitCamera(SCamera& in)
-{
-	in.Front = glm::vec3(0.0f, 0.0f, -1.0f);
-	in.Position = glm::vec3(0.0f, 0.0f, 3.0f);
-	in.Up = glm::vec3(0.0f, 1.0f, 0.0f);
-	in.WorldUp = in.Up;
+
+
+float cam_dist = 5.f;
+
+void InitCamera(SCamera& in) {
+	in.Front = glm::vec3(0.00256854, 0.160743, -0.986993);
+	in.Position = glm::vec3(-0.191527, -11.986, 73.5966);
+	in.Up = glm::vec3(-0.000418314, 0.986996, 0.160742);
+	in.WorldUp = glm::vec3(0, 1, 0);
 	in.Right = glm::normalize(glm::cross(in.Front, in.WorldUp));
 
-	in.Yaw = -90.f;
-	in.Pitch = 0.f;
+	in.Yaw = -0.149106;
+	in.Pitch = -9.25002;
+	std::cout << "init camera" << std::endl;
+	std::cout << "init camera" << std::endl;
+	std::cout << "init camera" << std::endl;
+	std::cout << "init camera" << std::endl;
+	std::cout << "init camera" << std::endl;
+	std::cout << in.Position.length() << std::endl;
+	cam_dist = 74.56f;
 }
-
-float cam_dist = 2.f;
 
 const float movementSpeed = .5f;
 float MouseSensitivity = 1.f;
@@ -52,6 +60,11 @@ float MouseSensitivity = 1.f;
 
 void MoveAndOrientCamera(SCamera& in, glm::vec3 target, float distance, float xoffset, float yoffset)
 {
+	/*std::cout << "MoveAndOrientCamera" << std::endl;
+	std::cout << distance << std::endl;
+	std::cout << xoffset << std::endl;
+	std::cout << yoffset << std::endl;
+	std::cout << "MoveAndOrientCameraEnd" << std::endl;*/
 	// Calculate the new Yaw and Pitch angles based on the offsets
 	float sensitivity = movementSpeed;  // Adjust this value to control the camera's rotation speed
 	in.Yaw += xoffset * sensitivity;
