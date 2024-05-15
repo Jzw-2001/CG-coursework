@@ -129,25 +129,6 @@ void initShadowMap() {
 }
 
 
-
-//void RenderSceneToDepthMap() {
-//	// Render to depth map
-//	glm::mat4 lightProjection, lightView;
-//	glm::mat4 lightSpaceMatrix;
-//	float near_plane = 1.0f, far_plane = 7.5f;
-//	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-//	lightView = glm::lookAt(lightPos, lightPos + lightDirection, glm::vec3(0.0, 1.0, 0.0));
-//	lightSpaceMatrix = lightProjection * lightView;
-//	// Switch to frame buffer and draw scene as we normally would to color texture
-//	glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.depthMapFBO);
-//	glClear(GL_DEPTH_BUFFER_BIT);
-//	// Configure shader and matrices
-//	GLuint program = CompileShader("shadow.vert", "shadow.frag");
-//	glUseProgram(program);
-//}
-
-
-
 string GetCurrentWorkingDir() {
 	char buff[FILENAME_MAX]; //create string buffer to hold path
 	_getcwd(buff, FILENAME_MAX);
@@ -160,27 +141,19 @@ string GetCurrentWorkingDir() {
 void LoadModels(ModelManager &modelManager) {
 	std::cout << "workingdir: " << GetCurrentWorkingDir().c_str() << std::endl;
 	modelManager.loadWaterModel("objects/plane2.obj", glm::vec3(0, 0, -50));
-	//modelManager.loadModel("objects/cat_quad_to_tri.obj", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
 	modelManager.loadModel("objects/boat2.obj", glm::vec3(0, 0, -10), glm::vec3(90, 0, 0));
 	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(10, -10, 37), glm::vec3(90, 90, 0));
 	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(30, 10, 42), glm::vec3(90, 90, 0));
 	modelManager.loadCloudModel("objects/cloud.obj", glm::vec3(40, -15, 32), glm::vec3(90, 90, 0));
-
 }
 
 
 
 void CloudShift(ModelManager& modelManager, glm::vec3 direction, float speed, float deltaTime) {
-	//cout << "CloudShift" << endl;
-	//cout << "direction: " << direction.x << " " << direction.y << " " << direction.z << endl;
-	//cout << "speed: " << speed << endl;
-	//cout << "deltaTime: " << deltaTime << endl;
-
 	for (auto& entry : modelManager.cloudMeshEntries) {
 		entry.position += direction * speed * deltaTime;
 	}
 }
-
 
 void saveShadowMapToBitmap(unsigned int Texture, int w, int h) {
 	float* pixelBuffer = (float*)malloc(sizeof(float) * w * h);// [] ;
@@ -429,7 +402,7 @@ int main(int argc, char** argv)
 		
 		// render boat
 
-		processBoatMovement(window, modelManager.meshEntries, deltaTime, boatForward, boatRight, boatSpeed, boatRotationSpeed);
+		processBoatMovement(window, modelManager.boatMeshEntries, deltaTime, boatForward, boatRight, boatSpeed, boatRotationSpeed);
 		glViewport(0, 0, WIDTH, HEIGHT);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		static const GLfloat bgd[] = { .8f, .8f, .8f, 1.f };
@@ -449,12 +422,12 @@ int main(int argc, char** argv)
 		glBindTexture(GL_TEXTURE_2D, shadowMap.Texture);
 		glUniform1i(glGetUniformLocation(program, "shadowMap"), 0);
 
-		for (auto& entry : modelManager.meshEntries) {
+		for (auto& entry : modelManager.boatMeshEntries) {
 			glBindVertexArray(entry.VAO);
 			glBindBuffer(GL_ARRAY_BUFFER, entry.VBO);
 		}
 
-		modelManager.drawModel(program, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
+		modelManager.drawBoatModel(program, lightPos, Camera.Position, shadowMap.Texture, lightSpaceMatrix);
 
 
 		// render water

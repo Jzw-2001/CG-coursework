@@ -10,7 +10,7 @@ out vec3 FragPos;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform float time;  // 动态效果的时间参数
+uniform float time;
 
 // 3D Simplex noise functions
 vec3 mod289(vec3 x) {
@@ -104,10 +104,9 @@ float fbm(vec3 p) {
 }
 
 void main() {
-    // 使用噪声函数来调整顶点位置
-    float frequency = 0.1; // 降低频率，增加波长
+    float frequency = 0.1;
     float height = fbm(vec3(aPos.x * frequency, aPos.z * frequency, time * 0.2));
-    float amplitude = 20.0; // 增加波浪的高度
+    float amplitude = 20.0;
     vec3 displacedPos = aPos;
     displacedPos.y += height * amplitude;
 

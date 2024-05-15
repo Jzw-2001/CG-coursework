@@ -12,7 +12,7 @@ uniform vec3 lightColor;
 
 uniform sampler2D shadowMap;
 uniform mat4 lightSpaceMatrix;
-uniform float time;  // 动态效果的时间参数
+uniform float time;
 
 uniform struct Material {
     vec3 ambient;
@@ -114,7 +114,7 @@ float fbm(vec3 p) {
 }
 
 float getHeight(vec3 p) {
-    return 0.3 - 0.5 * fbm(vec3(0.1 * p.x, 0.1 * p.z, time)); // 调整频率
+    return 0.3 - 0.5 * fbm(vec3(0.1 * p.x, 0.1 * p.z, time));
 }
 
 float ShadowCalculation(vec4 fragPosLightSpace) {
@@ -127,14 +127,16 @@ float ShadowCalculation(vec4 fragPosLightSpace) {
 }
 
 void main() {
-    // 动态改变法线来模拟水波，增加振幅和频率
+    // Dynamically changing normals to simulate water waves, increasing amplitude and frequency
     vec3 disturbedNormal = Normal;
-    float frequency = 0.1; // 降低频率，增加波长
-    float waveStrength = 1.0; // 增加波浪的高度
+    float frequency = 0.1;
+    float waveStrength = 1.0;
     disturbedNormal.x += fbm(vec3(FragPos.x * frequency, FragPos.y, time * 0.2)) * waveStrength;
     disturbedNormal.z += fbm(vec3(FragPos.z * frequency, FragPos.y, time * 0.2)) * waveStrength;
 
     disturbedNormal = normalize(disturbedNormal);
+
+
 
     // Ambient
     vec3 ambient = material.ambient;
@@ -151,21 +153,21 @@ void main() {
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     vec3 specular = spec * material.specular;
 
-    // 菲涅耳效应
+    // fresnel
     float fresnel = pow(1.0 - dot(viewDir, norm), 5.0);
 
-    // 简单的环境反射和折射模拟
-    vec3 reflectionColor = vec3(0.5, 0.8, 1.5); // 假设的天空颜色
-    vec3 refractionColor = vec3(0.0, 0.2, 0.4); // 假设的水下颜色
+    // reflection and refraction
+    vec3 reflectionColor = vec3(0.5, 0.8, 1.5);
+    vec3 refractionColor = vec3(0.0, 0.2, 0.4);
     vec3 finalColor = mix(refractionColor, reflectionColor, fresnel);
 
     // Shadow
     vec4 fragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
     float shadow = ShadowCalculation(fragPosLightSpace);
 
-    // Combine results
-    vec3 result = (1.0 - shadow) * (diffuse + specular) + ambient;
-    result = result * finalColor; // 将反射和折射的颜色应用到最终结果
+    
 
+    vec3 result = (1.0 - shadow) * (diffuse + specular) + ambient;
+    result = result * finalColor; 
     FragColor = vec4(result, material.transparency);
 }

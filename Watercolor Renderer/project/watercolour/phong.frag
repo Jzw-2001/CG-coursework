@@ -48,7 +48,6 @@ float ShadowCalculation(vec4 fragPosLightSpace) {
 
 
 void main() {
-    
     // Ambient
     vec3 ambient = texture(texture_ambient, TexCoords).rgb * material.ambient;
     if(!useTexture) ambient = material.ambient;
